@@ -428,6 +428,10 @@ void MainWindow::on_UserName_textEdited(const QString &arg1)
              NewUser->mUserNumber += NewUser->mUser;
              ui->ShowUsers->addItem(NewUser->mUser);
         }
+        
+        //이슈1 : 유저가 네임을 바꾸면 계속 뜬다....
+        //이슈2 : 여러번 뜬다.
+        // 머리아프니까 나중에
 
 //    const QStringList& List = FileList.entryList(QDir::Files|QDir::Dirs|QDir::Hidden|QDir::System|QDir::NoDotAndDotDot);
 //        // 경로크기만큼
