@@ -56,6 +56,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->AddressEdit->setText("boss2d.com");
     roomNum = "123";
+
+    // 가이드의견: roomNum을 작성하면 아래와 같이 UI도 변경하면 좋습니다
+    ui->RoomName->setText(roomNum);
+
 /*
     QDir TargetDir;
     TargetDir = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8();
@@ -191,6 +195,18 @@ void MainWindow::onReceive()
             auto name = json["name"].toString("noName");
             //ui->TalkList->addItem("["+c+"]"+b);
 
+            // 가이드의견: 여기서 유저이름을 수집하여 봅시다
+            bool NeedAdd = true;
+            for(int i = 0; i < ui->ShowUsers->count(); ++i)
+            {
+                if(name == ui->ShowUsers->item(i)->text()) // 가이드의견: 같은 이름이 리스트에 이미 있다면
+                    NeedAdd = false; // 가이드의견: 추가할 필요가 없습니다
+            }
+            if(NeedAdd)
+            {
+                ui->ShowUsers->addItem(name);
+                ui->ShowUsers->sortItems(); // 가이드의견: 소팅도 한번 해봅시다
+            }
 
             //데이터 처리
             if(subType =="fileshare")
@@ -412,8 +428,12 @@ public:
 //유저 이름
 void MainWindow::on_UserName_textEdited(const QString &arg1)
 {
-
     name = arg1;
+
+    // 가이드의견: 유저이름을 받아오려면 자신의 이름만 받을 것이 아니니
+    // onReceive를 사용하는 것이 더 좋겠습니다. 자신의 채팅도 수집되니까요.
+    // 여기 아래쪽은 return으로 제외시키겠습니다.
+    return;
 
     //<1>
     //
