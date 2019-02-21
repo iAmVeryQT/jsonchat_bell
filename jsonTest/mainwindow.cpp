@@ -7,6 +7,8 @@
 #include <QHBoxLayout>
 #include <QObjectUserData>
 #include <QPushButton>
+#include <algorithm>
+#include <queue> //bfs(image)
 using namespace std;
 //using namespace UsersManagement;
 //using namespace FileBox;
@@ -15,9 +17,7 @@ using namespace std;
 #define STR(A) QString::fromWCharArray(L##A)
 #define KOREAN(STR) QString::fromWCharArray(L##STR)
 
-
-/*
- * << 파일관리 >>
+ /* << 파일관리 >>
  *
  * 송신자
  * 파일경로
@@ -36,13 +36,16 @@ public:
  *
  * (입장한) 사용자
  * 사용자 명 수
- *
+ * 참여상태
+ * 참여시간
  * */
 class UserData: public QObjectUserData
 {
 public:
     QString mUser;
     QString mUserNumber;
+    //bool mIn;
+    //double mElapsed;
 };
 
 
@@ -51,35 +54,22 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
+    //show ui
     ui->setupUi(this);
     connect(&soketQt, SIGNAL(readyRead()), this, SLOT(onReceive()));
 
+    //room domain
     ui->AddressEdit->setText("boss2d.com");
+    //room number
     roomNum = "123";
-/*
-    QDir TargetDir;
-    TargetDir = QStandardPaths::standardLocations(QStandardPaths::DataLocation).value(0).toUtf8();
-    const QStringList& List = TargetDir.entryList(QDir::Files|QDir::Dirs|QDir::Hidden|QDir::System|QDir::NoDotAndDotDot);
-    for(int i=0,iend=List.size(); i<iend; ++i)
-    {
 
-    }
-*/
-
-
-
-
-    /* 윈도우 모달 생성 중 */
-
-
+    //get files object
     QDir FileList;
+    //connect to dir
     FileList = QStandardPaths::standardLocations(QStandardPaths::DownloadLocation).value(0);
-
-    // # QStringList 는 양방향 연결구조이다.
-    // # 삽입, 삭제가 용이한 점을 이용하자.
-    // 디렉토리 경로를 StringList에 저장해서 크기가 가변적인 데이터에 대응.
+    //stringList type for dir
     const QStringList& List = FileList.entryList(QDir::Files|QDir::Dirs|QDir::Hidden|QDir::System|QDir::NoDotAndDotDot);
-    // 경로크기만큼
+    //add files ++
     for(int i=0,iend=List.size(); i<iend; ++i)
     {
         ui->ShowFiles->addItem(List[i]);
@@ -89,13 +79,15 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 
 
-
+//..1. at
+//..2. length
+//..3. & .. .at
 MainWindow::~MainWindow()
 {
 
     delete ui;
 
-    //가변배열을 한바퀴 돌기위한 반복자
+    //iterator for list
     foreach(auto& iFile, mFileList)
     {
         if(iFile != nullptr)
@@ -106,12 +98,6 @@ MainWindow::~MainWindow()
         }
     }
 
-    //auto iFile = mFileList.at(i);
-    //for(int i=0; i < mFileList.length(); ++i)
-    //{
-      //  auto &iFile = mFileList.at(i);
-        //엠퍼센트를 쓰면
-    //}
 }
 
 
@@ -160,15 +146,13 @@ MainWindow::~MainWindow()
 void MainWindow::onReceive()
 {
 
-
-    //수신입장
-
-    //소켓 받아오기
+    //get socket
     QTcpSocket* Peer = (QTcpSocket*) sender();
        qint64 PacketSize = Peer->bytesAvailable();
 
        if(0 < PacketSize)
        {
+           //get packet object
            char* PacketBuffer = new char[PacketSize + 1];
            Peer->read(PacketBuffer, PacketSize);
            PacketBuffer[PacketSize] = '\0';
@@ -182,7 +166,7 @@ void MainWindow::onReceive()
            jasonString.remove("#json end");
 
 
-           //받을 데이터 타입
+           //받을 데이터 타입, subtype text name
             QJsonDocument json = QJsonDocument::fromJson(jasonString.toUtf8());
             auto subType = json["subtype"].toString();
             //QString
@@ -192,7 +176,7 @@ void MainWindow::onReceive()
             //ui->TalkList->addItem("["+c+"]"+b);
 
 
-            //데이터 처리
+            //subType 데이터 처리, fileshare getfile setfile
             if(subType =="fileshare")
             {
 
@@ -337,14 +321,16 @@ void MainWindow::onReceive()
 //주소버튼
 void MainWindow::on_AddressEdit_textChanged(const QString &arg1)
 {
+    // 송신
     address = arg1;
-
 }
+
 
 //접속버튼
 void MainWindow::on_ConnectBtn_clicked()
 {
 
+    // 송신
     soketQt.connectToHost(address,10125);
     if(soketQt.waitForConnected(5000))
        {
@@ -371,13 +357,14 @@ void MainWindow::on_TalkEdit_textEdited(const QString &arg1)
 void MainWindow::on_TalkEdit_returnPressed()
 {
 
+    //\"
     //데이터 타입
     QString json = "#json begin {";
      //json += "{";
-     json += "'type':'chat',";
-     json += "'room':'"+roomNum+"',";
-     json += "'name':'"+name+"',"; //필드를 지워버리면 noName이 나온다..
-     json += "'text':'"+textMessage+"'";
+     json += "\"type\":\"chat\",";
+     json += "\"room\":\""+roomNum+"\",";
+     json += "\"name\":\""+name+"\","; //필드를 지워버리면 noName이 나온다..
+     json += "\"text\":\""+textMessage+"\"";
      json += "} #json end";
 
 
@@ -393,32 +380,14 @@ void MainWindow::on_TalkEdit_returnPressed()
 }
 
 
-/*
- *
- * < 사용자 정보 >>
- *
- * (입장한) 사용자
- * 사용자 명 수
- *
- *
-class UserData: public QObjectUserData
-{
-public:
-    QString mUser;
-    QString mUserNumber;
-};
-*/
 
 //유저 이름
 void MainWindow::on_UserName_textEdited(const QString &arg1)
 {
-
+    
     name = arg1;
 
-    //<1>
-    //
-    // 유저 객체 받아오기
-    // 유저 멤버변수 이용하기
+    //using user object
            auto NewUser = new UserData;
            NewUser->mUser = name;
 
@@ -428,40 +397,15 @@ void MainWindow::on_UserName_textEdited(const QString &arg1)
              NewUser->mUserNumber += NewUser->mUser;
              ui->ShowUsers->addItem(NewUser->mUser);
         }
-
-//    const QStringList& List = FileList.entryList(QDir::Files|QDir::Dirs|QDir::Hidden|QDir::System|QDir::NoDotAndDotDot);
-//        // 경로크기만큼
-//        for(int i=0,iend=List.size(); i<iend; ++i)
-//        {
-//            ui->ShowFiles->addItem(List[i]);
-//        }
-
 }
 
 
 //방번호
 void MainWindow::on_RoomName_textEdited(const QString &arg1)
 {
+    //송신
     roomNum = arg1;
 }
-
-
-
-
-
-/*
-////////<2> QPushButton 새로 저장하기 메서드에 TalkList의 레이아웃 위젯기능 똑같이 구현
-*/
-
-
-
-/*
-////////////////////////<3> QPushButton 의 이모지 파일을 불러온다.
-/// 간단하게 팝업창으로 최근 썼던 이모지를 띄운다.
-/// 띄우는 데에는 DP 알고리즘을 이용한다.
-///
-
-*/
 
 
 
@@ -482,16 +426,17 @@ void MainWindow::on_SendFile_pressed()
      //FilePath.lastIndexOf("/");
 
          QString json = "#json begin {";
-          json += "'type':'chat',";
-          json += "'room':'"+roomNum+"',";
-          json += "'name':'"+name+"',";
-          json += "'text':'" + name + " user sends for a File[" + ShortName
-              + "(" + QString::number(FileSize) + "Byte)].',";
-          json += "'subtype':'fileshare',";
-          json += "'filepath':'" + ShortName +"'";
+          json += "\"type\":\"chat\",";
+          json += "\"room\":\""+roomNum+"\",";
+          json += "\"name\":\""+name+"\",";
+          json += "\"text\":\"" + name + " user sends for a File[" + ShortName
+              + "(" + QString::number(FileSize) + "Byte)].\",";
+          json += "\"subtype\":\"fileshare\",";
+          json += "\"filepath\":\"" + ShortName +"\"";
           json += "} #json end";
 
 
+          //송신
           soketQt.write(json.toUtf8().constData());
 
      }
@@ -539,7 +484,9 @@ void MainWindow::on_SendFile_pressed()
             else
                 ShortName = Data->mFilePath.right(Data->mFilePath.length()-SlashPos-1);
 
-
+            
+            
+            //수신
             QFile* WriteFile = new QFile(DirPath+"/"+ShortName+".download"); // 확장자는 구분하는 이름일 뿐이다. 의미없음.
             if(WriteFile->open(QFileDevice::WriteOnly))
             {
@@ -551,15 +498,15 @@ void MainWindow::on_SendFile_pressed()
 
                 QString Msg = "#json begin {";
                 //....
-                Msg += "fileid':'" + QString:: number(FileID) + "'";
+                Msg += "\"fileid\":\"" + QString:: number(FileID) + "\"";
                 Msg += "}#json end";
 
                 soketQt.write(Msg.toUtf8().constData());
 
             }
 
-
-
+            
+            //송신
             //데이터는 앞쪽경계선
 
             // 선언과 = 는 "초기화"
@@ -573,15 +520,15 @@ void MainWindow::on_SendFile_pressed()
             // 값 변환 금지 const:: int b ;   =======> nullptr로 초기화 해준다.
 
             QString Msg = "#json begin {";
-            Msg += "'type':'chat',";
-            Msg += "'room':'"+roomNum+"',";
-            Msg += "'name':'"+name+"',";
-            Msg += KOREAN("'text':' 파일받기를 시작합니다',");
+            Msg += "\"type\":\"chat\",";
+            Msg += "\"room\":\""+roomNum+"\",";
+            Msg += "\"name\":\""+name+"\",";
+            Msg += KOREAN("\"text\":\" 파일받기를 시작합니다\",");
 
-            Msg += "'subtype':'getfile',";
-            Msg += "'sender':'"+ Data->mSender+"',";
-            Msg += "'filepath':'" + Data->mFilePath +"',";
-            Msg += "'fileid':'0'";
+            Msg += "\"subtype\":\"getfile\",";
+            Msg += "\"sender\":\""+ Data->mSender+"\",";
+            Msg += "\"filepath\":\"" + Data->mFilePath +"\",";
+            Msg += "\"fileid\":\"0\"";
             Msg += " } #json end";
             soketQt.write(Msg.toUtf8().constData());
 
@@ -598,5 +545,41 @@ void MainWindow::on_SendFile_pressed()
         //QMessageBox(QMessageBox::Information,"Debug",OneData->mFilePath).exec();
     }
  }
+
+
+/* 가이드 요청 부분 */
+ //이모지 탐색
+void MainWindow::on_ImageLoad_clicked()
+{
+    QIcon img("../image");
+    QIcon initImg("../image/in-love.png");
+
+    queue<QIcon> qIcon;
+    qIcon.push(initImg);
+    while(!qIcon.empty())
+    {
+        QIcon front = qIcon.front();
+        qIcon.pop(); //pop
+
+
+/*        foreach(auto& out, img)*/
+        {   QIcon next = img;
+            //if(out!= nullptr)
+              if(!(img.Off)){qIcon.push(next);} //push
+        }
+    }
+
+
+}
+
+
+/* 가이드 요청부분 */
+void MainWindow::on_pushButton_clicked()
+{
+
+/*    QIcon img("../image/in-love.png");
+    auto item = new QListWidgetItem(img);
+    ui->TalkList->addItem(item); //qt에서 알아서 delete해줌 */
+}
 
 
