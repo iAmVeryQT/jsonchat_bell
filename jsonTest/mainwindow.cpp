@@ -8,7 +8,7 @@
 #include <QObjectUserData>
 #include <QPushButton>
 #include <algorithm>
-#include <queue> //bfs(image)
+//#include <queue> //bfs(image)
 #include <QMap>
 using namespace std;
 //using namespace UsersManagement;
@@ -63,8 +63,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->AddressEdit->setText("boss2d.com");
     //room number
     roomNum = "123";
-<<<<<<< HEAD
-=======
+
 
     // 가이드의견: roomNum을 작성하면 아래와 같이 UI도 변경하면 좋습니다
     ui->RoomName->setText(roomNum);
@@ -81,10 +80,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 
 
-
-    /* 윈도우 모달 생성 중 */
-
->>>>>>> 6caf40e7e08a9a3b5c760a1902cf649e2a09d765
+//>>>>>>> 6caf40e7e08a9a3b5c760a1902cf649e2a09d765
 
     //get files object
     QDir FileList;
@@ -333,7 +329,7 @@ void MainWindow::onReceive()
 
             ////////////////
             ////////////////
-            ///
+            /// const QStringList& List =
             /*if(true)
             {
                 QIcon img("../image/in-love.png"); //역슬래쉬 쓰려면 두번 써야한다.  "//"
@@ -392,7 +388,7 @@ void MainWindow::on_TalkEdit_textEdited(const QString &arg1)
 void MainWindow::on_TalkEdit_returnPressed()
 {
 
-    //\"
+    // \"
     //데이터 타입
     QString json = "#json begin {";
      //json += "{";
@@ -403,13 +399,9 @@ void MainWindow::on_TalkEdit_returnPressed()
      json += "} #json end";
 
 
-     //송신
+     //송신 후 clear
      soketQt.write(json.toUtf8().constData());
-
-     //display
      ui->TalkList->scrollToBottom(); // 대화내용 스크롤링하기
-
-     //송신 후 글 없애주기
      ui->TalkEdit->clear();
 
 }
@@ -419,12 +411,12 @@ void MainWindow::on_TalkEdit_returnPressed()
 //유저 이름
 void MainWindow::on_UserName_textEdited(const QString &arg1)
 {
-<<<<<<< HEAD
+
     
     name = arg1;
 
     //using user object
-=======
+
     name = arg1;
 
     // 가이드의견: 유저이름을 받아오려면 자신의 이름만 받을 것이 아니니
@@ -436,7 +428,7 @@ void MainWindow::on_UserName_textEdited(const QString &arg1)
     //
     // 유저 객체 받아오기
     // 유저 멤버변수 이용하기
->>>>>>> 6caf40e7e08a9a3b5c760a1902cf649e2a09d765
+//>>>>>>> 6caf40e7e08a9a3b5c760a1902cf649e2a09d765
            auto NewUser = new UserData;
            NewUser->mUser = name;
 
@@ -596,39 +588,66 @@ void MainWindow::on_SendFile_pressed()
  }
 
 
-/* 가이드 요청 부분 */
- //이모지 탐색
+//이모지 리스트에 넣기
 void MainWindow::on_ImageLoad_clicked()
 {
-    QIcon img("../image");
-    QIcon initImg("../image/in-love.png");
+/*
+    QListWidget list;
+    QIcon im("../image/in-love.png");
+    QListWidgetItem* item = new QListWidgetItem();
+    item->setIcon(img);
+    //test1
+    list.addItem(item);
+    ui->ImageBox->addItem(item);
+*/
 
-    queue<QIcon> qIcon;
-    qIcon.push(initImg);
-    while(!qIcon.empty())
-    {
-        QIcon front = qIcon.front();
-        qIcon.pop(); //pop
+    //QMap<QIcon,QString> imozyset;
 
+    QIcon love("../image/in-love.png");
+    imozyset.value(love);
+    imozyset.key("love");
+    //happy
+    QIcon happy("../image/happy.png");
+    imozyset.value(happy);
+    imozyset.key("happy");
+    //sad
+    QIcon crying("../image/crying.png");
+    imozyset.value(crying);
+    imozyset.key("crying");
+    //angry
+    QIcon angry("../image/angry.png");
+    imozyset.value(angry);
+    imozyset.key("angry");
 
-/*        foreach(auto& out, img)*/
-        {   QIcon next = img;
-            //if(out!= nullptr)
-              if(!(img.Off)){qIcon.push(next);} //push
-        }
+    QMap<QIcon,QString>::iterator it;
+    for (it->begin();it->end();++it) {
+
+        QIcon con; con = it.key();
+        QString st; st = it.value();
+        QListWidgetItem *item= new QListWidgetItem(con,st);
+       // item->setIcon(imozyset.key(),imozyset.value());
+        ui->ImageBox->addItem(item);
     }
 
+/* 가이드  요청 1.
 
+    C:\Qt\5.12.0\msvc2017_64\include\QtCore\qmap.h:71: error: C2678: 이항 '<': 왼쪽 피연산자로 'const Key' 형식을 사용하는 연산자가 없거나 허용되는 변환이 없습니다.
+    with
+    [
+    Key=QIcon
+    ]
+*/
 }
 
 
-/* 가이드 요청부분 */
-void MainWindow::on_pushButton_clicked()
+
+//이모지 클릭 -> edit 창으로
+void MainWindow::on_ImageBox_itemClicked(QListWidgetItem *item)
 {
-
-/*    QIcon img("../image/in-love.png");
-    auto item = new QListWidgetItem(img);
-    ui->TalkList->addItem(item); //qt에서 알아서 delete해줌 */
+    /* 가이드 요청 2. */
+    return imozyset = item;
+    //C:\Users\Jeon2\Documents\GitHub\jsonchat_bell\jsonTest\mainwindow.cpp:647: error: no viable overloaded '='
 }
+
 
 

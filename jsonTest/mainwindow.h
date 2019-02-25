@@ -1,6 +1,7 @@
 ﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+#include <QListWidgetItem>
 #include <QMainWindow>
 #include <QTcpSocket>
 #include <QDialog>
@@ -40,11 +41,9 @@ private slots:
 
     void DownloadBtn(); //신호받기
 
-    void on_ImageLoad_clicked();
+    void on_ImageLoad_clicked(); //이모지 리스트에 넣기
     
-   // void on_pushButton_clicked(const QIcon &recentIcon);
-
-    void on_pushButton_clicked();
+    void on_ImageBox_itemClicked(QListWidgetItem *item); //이모지 클릭 -> edit 창으로
 
 private:
     Ui::MainWindow *ui;
@@ -53,10 +52,10 @@ private:
     QString textMessage;
     QString name;
     QString roomNum;
-    //QString ShortName;
     int FileSize;
     QList<QFile*> mFileList;
-    QList<QIcon*> mIconLoad; // * 체크
+    //QList<QIcon*> mIconLoad; // * 체크
+    QMap<QIcon,QString> imozyset;
 
 };
 
